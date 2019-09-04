@@ -1,19 +1,19 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const moment = require('moment');
 const fs = require('fs');
 
-const { calculator, hours, companies }  = require('./helpers');
+const { calculator }  = require('./helpers');
 
 
 
 const app = express();
 const port = 3000
 
-app.get('/', (req, res) => {
- res.send('Hello World!');  
-});
+ 
+//middleware
 
-app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
 
 
 //1. /calculator/num1/num2/operator route(GET) that works with these operators: +, -, *, /, %(percentage)
@@ -31,6 +31,10 @@ app.get('/calculator/:a/:b/:operator', (req, res) => {
 var todoList = ["ga boodschappen", "koopt een brood", "koopt fraut"];
 
 //get all todos with GET/
+
+// app.get('/todo', (req, res) => {
+//     res.send(todoList);
+// })
 
 app.get('/todo', (req, res) => {
     let todos = '';
@@ -55,33 +59,31 @@ app.delete('/todo/:id', (req, res) => {
 });
 
 // 3. /future/hours route(GET) that adds given hours to the current datetime and returns result.
+app.get('/future/:hours', (req, res) => {
 
-app.use(hours);
+    let futureDate = moment().add(req.params.hours, 'hours').format('LLL');
+
+    res.send(futureDate);
+})
+
 
 
 // 4. /login route((POST) that checks if the given username and password is 
 // correct or not and will respond with appropriate status code.
 // The correct credentials; username: admin, password:password.
 
-
-app.get('/login',(req,res)=>{
-    res.sendFile(__dirname+'/index.html')
-})
-
-
 app.post('/login',(req,res)=>{
 
-    var username = req.body.user;
+    var username = req.body.username;
     
-    var password = req.body.pass;
+    var password = req.body.password;
 
     if(username=='admin' && password=='password'){
-    res.send('Welcome '+username+' '+password)
+    res.send('Welcome '+ username)
     }else{
-        res.status(400).json({msg: 'please include a user name and password'})
+        res.status(401).json({msg: 'please include a user name and password'})
     }
     
-
 })
 
 
@@ -95,15 +97,20 @@ app.post('/login',(req,res)=>{
 // }
 // Example file: X Company.json
 
-app.get('/report',(req,res)=>{
-    res.send(companies)
-   
-})
 
 app.post('/report', (req, res) => {
 
-    res.json(companies.map(n => n.customer));
-    fs.writeFileSync('customer.json', JSON.stringify(companies.map(n => n.customer)));
+    let { customer } = req.body;
+
+    let isDirExist = fs.existsSync('./report');
+
+    if(!isDirExist) {
+        fs.mkdirSync('./report');
+    }
+
+    fs.writeFileSync(`./report/${customer}.json`, JSON.stringify(req.body));
+
+    res.send('saved');
 
 })
 
