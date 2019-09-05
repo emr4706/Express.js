@@ -5,8 +5,6 @@ const fs = require('fs');
 
 const { calculator }  = require('./helpers');
 
-
-
 const app = express();
 const port = 3000
 
@@ -47,6 +45,7 @@ app.get('/todo', (req, res) => {
 //add new todo with POST
 
 app.post('/todo', (req, res) => {
+ 
    todoList.push(req.body.todo);
    res.send(todoList);
 });
